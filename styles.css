@@ -35,7 +35,7 @@ h2 { margin: 0; font-weight: 600; font-size: 19px; letter-spacing: -.4px; }
 .pill { padding: 5px 10px; border-radius: 20px; background: #f3f6f4; border: 1px solid #e6ebe7; font-size: 10px; color: #5b7166; white-space: nowrap; }
 .field-label { font-size: 12px; font-weight: 600; display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
 .field-label > span { font-size: 10px; font-weight: 400; color: #667b6d; }
-input[type=text] { width: 100%; padding: 11px 13px; border: 1px solid #ccd7cf; border-radius: 6px; color: #234c41; font-size: 13px; background: #fff; }
+input[type=text], select { width: 100%; padding: 11px 13px; border: 1px solid #ccd7cf; border-radius: 6px; color: #234c41; font-size: 13px; background: #fff; }
 input::placeholder { color: #6f8076; }
 .field-help { color: #677c6d; font-size: 10px; margin: 7px 0 22px; }
 .dropzone { border: 1.5px dashed #c1d1c6; border-radius: 9px; background: #fafcfb; transition: background .2s, border-color .2s; }
@@ -88,7 +88,7 @@ input::placeholder { color: #6f8076; }
 .malignant::-moz-progress-bar { background: #c5aa7b; }
 .result-meta { border-top: 1px solid #edf0ed; padding-top: 14px; margin-top: 24px; }
 .result-meta > div { display: flex; justify-content: space-between; gap: 15px; margin: 8px 0; font-size: 10px; }
-dt { color: #6b7f6e; } dd { margin: 0; text-align: right; color: #58715f; }
+dt { color: #6b7f6e; } dd { margin: 0; text-align: right; color: #58715f; overflow-wrap: anywhere; min-width: 0; }
 .report-actions { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
 .secondary-button { background: #fff; color: #2d6651; border: 1px solid #ccddd0; flex: 1; }
 .secondary-button:hover { background: #f3f8f2; }

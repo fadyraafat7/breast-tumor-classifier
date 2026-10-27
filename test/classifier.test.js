@@ -95,3 +95,36 @@ test('a failed replacement model leaves inference disabled and clears earlier re
     assert.equal(classifier.classificationResults, null);
     await assert.rejects(classifier.classifyTumor(scan), /No trained model/);
 });
+
+test('reports cannot associate a result with a different scan', () => {
+    const classifier = new BreastTumorClassifier();
+    const scan = classifier.processMRIScans(image('first.png'));
+    classifier.runDemo(scan);
+    assert.throws(() => classifier.generateReport({ id: 'S1' }, { ...scan, name: 'other.png' }), /scan that was analyzed/);
+    classifier.clearScan();
+    assert.throws(() => classifier.generateReport({ id: 'S1' }, scan), /Run an analysis/);
+});
+
+test('late inference cannot overwrite a result for a newly selected scan', async () => {
+    const classifier = new BreastTumorClassifier();
+    let resolvePrediction;
+    await classifier.initializeModel({ name: 'slow', predict: () => new Promise(resolve => { resolvePrediction = resolve; }) });
+    const first = classifier.processMRIScans(image('first.png'));
+    const pending = classifier.classifyTumor(first);
+    const second = classifier.processMRIScans(image('second.png'));
+    classifier.runDemo(second);
+    resolvePrediction({ benign: 0.2, malignant: 0.8 });
+    await assert.rejects(pending, /superseded/);
+    assert.equal(classifier.generateReport({ id: 'S1' }, second).classification.mode, 'demo');
+});
+
+test('the last model initialization wins even when an earlier load finishes later', async () => {
+    const classifier = new BreastTumorClassifier();
+    let resolveLoad;
+    const pending = classifier.initializeModel({ name: 'slow', load: () => new Promise(resolve => { resolveLoad = resolve; }), predict() {} });
+    await classifier.initializeModel({ name: 'new', predict: async () => ({ benign: 1, malignant: 0 }) });
+    resolveLoad();
+    await assert.rejects(pending, /superseded/);
+    const scan = classifier.processMRIScans(image());
+    assert.equal((await classifier.classifyTumor(scan)).model, 'new');
+});
