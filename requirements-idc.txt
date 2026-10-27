@@ -1,0 +1,4 @@
+# Install in the same Python environment as requirements.txt.
+-r requirements.txt
+torch>=2.2,<3
+torchvision>=0.17,<1

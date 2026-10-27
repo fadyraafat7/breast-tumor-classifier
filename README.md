@@ -4,6 +4,41 @@ A local research prototype for exploring image classification. It includes an ex
 
 The baseline is deliberately simple: logistic regression on a 16 × 16 grayscale image. It learns from labeled 2D exports; it does not process DICOM, 3D volumes, or complete MRI studies. Its suitability and performance depend on the dataset and must be established independently. Its scores are not calibrated clinical probabilities.
 
+## Notebook-based IDC tissue classifier
+
+The separate `ml/idc_train.py` workflow adapts [breast-cancer.ipynb](breast-cancer.ipynb) to train the notebook's ResNet-18 classifier on **histopathology image patches**, not MRI scans. Its classes are **0: no invasive ductal carcinoma (IDC)** and **1: IDC**. A negative IDC patch is not necessarily benign or cancer-free. The IDC model is not connected to the app's benign/malignant workflow, and cannot be used as an MRI model.
+
+Create an isolated environment and install PyTorch and torchvision:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-idc.txt
+```
+
+The notebook's data and pretrained weights are not included. Obtain the dataset separately and arrange it as `dataset-root/<patient-id>/0/<image>.png` and `dataset-root/<patient-id>/1/<image>.png`, where `0` means no IDC and `1` means IDC. JPG and JPEG are also supported. Patient IDs must be anonymous and consistent across all patches from the same patient. Then create a patient-disjoint manifest:
+
+```powershell
+.\.venv\Scripts\python.exe ml/idc_data.py --dataset "C:\path\to\IDC_regular_ps50_idx5" --output data/idc-manifest.csv
+```
+
+The script assigns patients to approximately 70% train, 15% validation, and 15% test using a fixed seed (`--seed` changes it). It requires both labels in every split and rejects identical image bytes. If the split lacks a class, use a different seed or edit the CSV while keeping each patient in one split. The manifest stores image paths and patient identifiers; keep it private and outside version control. Byte comparisons cannot identify re-encoded duplicates, inconsistent patient IDs, or all related data. Review provenance and leakage before training.
+
+Train the notebook-style model:
+
+```powershell
+.\.venv\Scripts\python.exe ml/idc_train.py train --manifest data/idc-manifest.csv --epochs 10
+```
+
+By default torchvision downloads official ImageNet ResNet-18 weights if they are not cached. For an already downloaded trusted ResNet-18 ImageNet state dictionary use `--pretrained-file "C:\path\to\resnet18-5c106cde.pth"`; for an offline smoke test use `--scratch` (this freezes a randomly initialized backbone, so it is not a meaningful substitute for pretrained training). Training uses 50 × 50 RGB patches, flips, class-weighted loss and a frozen backbone, and selects the best epoch by validation loss. It evaluates the test set once after model selection. It writes `artifacts/idc-model.pt` and `artifacts/idc-metrics.json`; files at those paths are overwritten. The metrics are per patch, not per patient. Avoid repeatedly tuning against the test set.
+
+To run a single tissue patch through the trained checkpoint:
+
+```powershell
+.\.venv\Scripts\python.exe ml/idc_train.py predict --model artifacts/idc-model.pt --image "C:\path\to\patch.png"
+```
+
+The scores are uncalibrated research outputs, not a diagnosis. Only load model files from trusted sources. This workflow is an adaptation, not an exact reproduction of the notebook; its optimizer schedule and model selection differ. No medical performance is established until evaluated on a suitable independent dataset.
+
 ## Setup and run
 
 Install Node.js 20+ and Python 3.10+, then install the Python dependency:
