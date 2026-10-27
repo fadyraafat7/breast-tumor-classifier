@@ -1,61 +1,78 @@
-// Breast Tumor Classifier - Main Application
-// This is a placeholder file for the AI-based breast tumor classification system
-
-// Import necessary libraries for AI/ML and image processing
-// import tensorflow as tf
-// import numpy as np
-// import cv2
-// import pandas as pd
-
-class BreastTumorClassifier {
+// Synthetic demo results are separate from the trained model adapter.
+export class BreastTumorClassifier {
     constructor() {
+        this.model = null;
         this.modelLoaded = false;
         this.classificationResults = null;
     }
 
-    // Initialize the classifier with pre-trained model
-    initializeModel() {
-        console.log("Initializing breast tumor classification model...");
-        // Model initialization code would go here
+    async initializeModel(adapter) {
+        if (!adapter || typeof adapter.predict !== 'function' ||
+            typeof adapter.name !== 'string' || !adapter.name.trim()) {
+            throw new Error('Provide a named model adapter with a predict(scan) function.');
+        }
+        this.model = null;
+        this.modelLoaded = false;
+        this.classificationResults = null;
+        await adapter.load?.();
+        this.model = adapter;
         this.modelLoaded = true;
-        return this.modelLoaded;
+        return true;
     }
 
-    // Process MRI scan images
-    processMRIScans(imagePath) {
-        console.log("Processing MRI scan from: " + imagePath);
-        // Image processing code would go here
-        return "Processed image data";
+    processMRIScans(file) {
+        this.classificationResults = null;
+        if (!file || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+            throw new Error('Choose a PNG, JPEG, or WebP image. DICOM is not supported yet.');
+        }
+        if (!Number.isFinite(file.size) || file.size <= 0 || file.size > 10 * 1024 * 1024) {
+            throw new Error('Choose a nonempty image smaller than or equal to 10 MB.');
+        }
+        // Model-specific decoding and preprocessing belong in the adapter.
+        return { file, name: file.name, type: file.type, size: file.size };
     }
 
-    // Classify tumor based on processed image data
-    classifyTumor(processedData) {
-        console.log("Classifying tumor based on processed data...");
-        // Classification algorithm would go here
+    async classifyTumor(scan) {
+        this.classificationResults = null;
+        if (!this.modelLoaded) throw new Error('No trained model is connected. Use the explicit demo workflow.');
+        if (!scan?.file) throw new Error('Select and validate a scan first.');
+        const output = await this.model.predict(scan);
+        const { benign, malignant } = output ?? {};
+        if (![benign, malignant].every(value => Number.isFinite(value) && value >= 0 && value <= 1) ||
+            Math.abs(benign + malignant - 1) > 0.001) {
+            throw new Error('The model must return benign and malignant probabilities that sum to 1.');
+        }
         this.classificationResults = {
-            benign: 0.15,
-            malignant: 0.85,
-            confidence: 0.92
+            mode: 'model', model: this.model.name, benign, malignant,
+            createdAt: new Date().toISOString(),
         };
-        return this.classificationResults;
+        return { ...this.classificationResults };
     }
 
-    // Generate medical report based on classification results
-    generateReport(patientInfo) {
-        console.log("Generating medical report for patient: " + patientInfo.id);
-        // Report generation code would go here
+    runDemo(scan) {
+        this.classificationResults = null;
+        if (!scan?.file) throw new Error('Select and validate a scan first.');
+        this.classificationResults = {
+            mode: 'demo', model: 'Synthetic demo fixture', benign: 0.64, malignant: 0.36,
+            createdAt: new Date().toISOString(),
+            notice: 'Fixed synthetic values for interface testing. Not derived from the uploaded image. Not for diagnosis.',
+        };
+        return { ...this.classificationResults };
+    }
+
+    generateReport(study, scan) {
+        if (!this.classificationResults) throw new Error('Run an analysis before generating a report.');
+        if (typeof study?.id !== 'string' || !study.id.trim()) throw new Error('Enter a study reference.');
+        if (!scan?.file) throw new Error('Select and validate a scan first.');
         return {
-            patientId: patientInfo.id,
-            scanDate: new Date().toISOString(),
-            classification: this.classificationResults,
-            recommendation: "Further examination recommended"
+            schemaVersion: 1,
+            studyReference: study.id.trim(),
+            exportedAt: new Date().toISOString(),
+            scan: { name: scan.name, type: scan.type, size: scan.size },
+            classification: { ...this.classificationResults },
+            intendedUse: 'Research prototype. Not a medical report or diagnostic device.',
         };
     }
 }
 
-// Example usage
-// const classifier = new BreastTumorClassifier();
-// classifier.initializeModel();
-// const processedData = classifier.processMRIScans("path/to/mri/scan.jpg");
-// const results = classifier.classifyTumor(processedData);
-// const report = classifier.generateReport({id: "P12345", name: "Patient Name"});
+export default BreastTumorClassifier;

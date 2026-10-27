@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A local research prototype for exploring a breast scan classification workflow.">
+  <title>Breast Tumor Classifier · Research workspace</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Breast Tumor Classifier home"><span class="brand-mark" aria-hidden="true">b<span>+</span></span><span>Breast Tumor Classifier<small>RESEARCH WORKSPACE</small></span></a>
+    <span class="local-tag"><span aria-hidden="true"></span>Local session</span>
+  </header>
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">IMAGE CLASSIFICATION / PROTOTYPE 0.1</p><h1>A clearer view of<br>your research workflow.</h1><p class="intro-copy">Preview a scan, explore a sample classification, and export a study record in one workspace.</p></div>
+      <div class="mode-card"><span class="status-dot" aria-hidden="true"></span><div><strong>Demo mode</strong><p>No trained model connected</p></div><span class="version">v0.1</span></div>
+    </section>
+    <aside class="notice"><span class="notice-icon" aria-hidden="true">i</span><p><strong>For research and interface testing.</strong> Demo results use fixed synthetic values unrelated to your image. This prototype cannot diagnose cancer.</p></aside>
+    <div class="workspace">
+      <section class="panel scan-panel" aria-labelledby="scan-title">
+        <div class="panel-heading"><div><p class="step">01 / INPUT</p><h2 id="scan-title">Prepare your study</h2></div><span class="pill">Browser only</span></div>
+        <label class="field-label" for="study-id">Study reference <span>Required for export</span></label>
+        <input id="study-id" type="text" maxlength="80" placeholder="e.g. STUDY-001" autocomplete="off" aria-describedby="study-help">
+        <p class="field-help" id="study-help">Use an anonymous reference; avoid patient names.</p>
+        <div id="dropzone" class="dropzone">
+          <input id="scan-file" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp">
+          <label class="upload-label" for="scan-file"><span class="upload-icon" aria-hidden="true">↥</span><strong>Choose a scan image</strong><span>or drag and drop it here</span><small>PNG, JPEG, WebP · Up to 10 MB</small></label>
+        </div>
+        <div class="preview-wrap" id="preview-wrap" hidden>
+          <div class="image-stage"><img id="scan-preview" alt="Selected scan preview"><span>IMAGE PREVIEW</span></div>
+          <div class="file-details"><div><strong id="file-name"></strong><small id="file-size"></small></div><button id="remove-file" class="text-button" type="button">Remove</button></div>
+        </div>
+        <p class="file-note">Exported images only. DICOM and multi-slice MRI analysis are not supported.</p>
+        <div id="error" class="error" role="alert" hidden></div>
+        <button id="analyze" class="primary-button" type="button" disabled>Run demo analysis <span aria-hidden="true">→</span></button>
+        <p class="privacy-note">Your image stays in this browser. Nothing is uploaded or saved.</p>
+      </section>
+      <section class="panel result-panel" aria-labelledby="result-title">
+        <div class="panel-heading"><div><p class="step">02 / OUTPUT</p><h2 id="result-title">Classification preview</h2></div><span id="result-status" class="pill">Awaiting image</span></div>
+        <div id="empty-state" class="empty-state"><div class="scan-graphic" aria-hidden="true"><span></span><span></span><span></span><span></span><i>+</i></div><h3>Your study starts here</h3><p>Choose an image, then run the demo to explore the results and export workflow.</p><div class="empty-steps"><span>01 Upload</span><span>02 Preview</span><span>03 Export</span></div></div>
+        <div id="results" hidden>
+          <div class="result-banner"><span class="eyebrow">SYNTHETIC SAMPLE</span><h3>Demo analysis complete</h3><p>These values are a fixed example. They do not describe the uploaded image.</p></div>
+          <div class="score-row"><span>Benign <small>Example score</small></span><strong id="benign-score">64<span>%</span></strong></div>
+          <progress id="benign-bar" class="score-bar benign" max="1" value="0.64" aria-label="Synthetic benign score">64%</progress>
+          <div class="score-row"><span>Malignant <small>Example score</small></span><strong id="malignant-score">36<span>%</span></strong></div>
+          <progress id="malignant-bar" class="score-bar malignant" max="1" value="0.36" aria-label="Synthetic malignant score">36%</progress>
+          <dl class="result-meta"><div><dt>Source</dt><dd>Synthetic demo fixture</dd></div><div><dt>Analysis type</dt><dd>Interface demonstration</dd></div><div><dt>Completed</dt><dd id="completed-at"></dd></div></dl>
+          <div class="report-actions"><button id="export" class="secondary-button" type="button">Export JSON record <span aria-hidden="true">↓</span></button><button id="print" class="text-button" type="button">Print summary</button></div>
+          <p class="report-caption">Exports include the demo label and image metadata. Image pixels are excluded.</p>
+        </div>
+      </section>
+    </div>
+    <p id="live-status" class="visually-hidden" role="status" aria-live="polite"></p>
+    <footer><span>Breast Tumor Classifier <span class="footer-divider">/</span> Graduation project</span><span>Research prototype · Not for clinical use</span></footer>
+  </main>
+  <noscript>This prototype needs JavaScript enabled to preview images and generate demo reports.</noscript>
+</body>
+</html>
